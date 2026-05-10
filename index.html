@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tata Surya — Penjelajah Antariksa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --void: #020408;
+      --deep-space: #050d1a;
+      --nebula-blue: #0a1f3d;
+      --star-white: #e8f4ff;
+      --solar-gold: #f5a623;
+      --corona: #ff6b00;
+      --plasma: #00c8ff;
+      --glow-soft: rgba(0,200,255,0.15);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--void);
+      font-family: 'Exo 2', sans-serif;
+      color: var(--star-white);
+      overflow: hidden;
+    }
+
+    /* ── Starfield ── */
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .shell {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    /* ── Header / Toolbar ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: linear-gradient(180deg, rgba(5,13,26,0.98) 0%, rgba(5,13,26,0.85) 100%);
+      border-bottom: 1px solid rgba(0,200,255,0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 2px 24px rgba(0,0,0,0.6);
+      user-select: none;
+    }
+
+    /* Sun logo */
+    .sun-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #ffe680 0%, #f5a623 45%, #e05500 100%);
+      box-shadow: 0 0 12px 4px rgba(245,166,35,0.55), 0 0 28px 8px rgba(255,107,0,0.25);
+      flex-shrink: 0;
+      animation: pulse-sun 3s ease-in-out infinite;
+    }
+    @keyframes pulse-sun {
+      0%,100% { box-shadow: 0 0 12px 4px rgba(245,166,35,0.55), 0 0 28px 8px rgba(255,107,0,0.25); }
+      50%      { box-shadow: 0 0 18px 7px rgba(245,166,35,0.75), 0 0 40px 14px rgba(255,107,0,0.35); }
+    }
+
+    .site-title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      color: var(--solar-gold);
+      text-shadow: 0 0 10px rgba(245,166,35,0.5);
+      line-height: 1.2;
+    }
+    .site-subtitle {
+      font-size: 10px;
+      font-weight: 300;
+      color: rgba(232,244,255,0.45);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    /* URL bar */
+    .url-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,200,255,0.14);
+      border-radius: 8px;
+      padding: 6px 12px;
+      gap: 8px;
+      min-width: 0;
+    }
+    .url-bar-icon {
+      width: 8px; height: 8px;
+      background: #22dd77;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px #22dd77;
+    }
+    .url-bar-text {
+      font-size: 12px;
+      color: rgba(232,244,255,0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.03em;
+    }
+    .url-bar-text span { color: var(--plasma); }
+
+    /* Nav buttons */
+    .nav-btn {
+      width: 32px; height: 32px;
+      border: 1px solid rgba(0,200,255,0.18);
+      border-radius: 8px;
+      background: rgba(0,200,255,0.06);
+      color: rgba(232,244,255,0.6);
+      font-size: 14px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .nav-btn:hover {
+      background: rgba(0,200,255,0.14);
+      color: var(--plasma);
+      border-color: rgba(0,200,255,0.4);
+    }
+
+    /* ── Masuk Button ── */
+    .btn-masuk {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: linear-gradient(135deg, #f5a623 0%, #e05500 100%);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 14px rgba(245,166,35,0.4), 0 2px 8px rgba(0,0,0,0.5);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .btn-masuk::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+      transition: opacity 0.2s;
+    }
+    .btn-masuk:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 22px rgba(245,166,35,0.65), 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .btn-masuk:hover::before { opacity: 0.5; }
+    .btn-masuk:active { transform: translateY(0); }
+    .btn-masuk svg { flex-shrink: 0; }
+
+    /* ── iFrame area ── */
+    .frame-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--deep-space);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 10;
+      transition: opacity 0.6s ease;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .orbit-loader {
+      position: relative;
+      width: 80px; height: 80px;
+    }
+    .orbit-loader .center-star {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffe680, #f5a623);
+      box-shadow: 0 0 10px 4px rgba(245,166,35,0.6);
+    }
+    .orbit-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      border: 1px solid rgba(0,200,255,0.25);
+      border-radius: 50%;
+      transform-origin: center center;
+    }
+    .orbit-ring::after {
+      content: '';
+      position: absolute;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      top: -4px; left: 50%;
+      margin-left: -3.5px;
+    }
+    .ring1 {
+      width: 40px; height: 40px;
+      margin: -20px 0 0 -20px;
+      animation: orbit 1.8s linear infinite;
+    }
+    .ring1::after { background: var(--plasma); box-shadow: 0 0 6px var(--plasma); }
+    .ring2 {
+      width: 65px; height: 65px;
+      margin: -32.5px 0 0 -32.5px;
+      animation: orbit 3s linear infinite reverse;
+    }
+    .ring2::after { background: var(--solar-gold); box-shadow: 0 0 6px var(--solar-gold); }
+    @keyframes orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: rgba(232,244,255,0.45);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+    /* Scan line effect on iframe */
+    .frame-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.03) 3px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── Modal ── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,4,8,0.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .modal-bg.open { opacity: 1; pointer-events: all; }
+
+    .modal-card {
+      background: linear-gradient(160deg, #0a1f3d 0%, #050d1a 100%);
+      border: 1px solid rgba(0,200,255,0.25);
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: min(360px, 90vw);
+      box-shadow: 0 0 60px rgba(0,200,255,0.1), 0 24px 64px rgba(0,0,0,0.7);
+      transform: translateY(12px);
+      transition: transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .modal-bg.open .modal-card { transform: translateY(0); }
+
+    .modal-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,166,35,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .modal-logo {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #ffe680 0%, #f5a623 45%, #e05500 100%);
+      box-shadow: 0 0 18px 6px rgba(245,166,35,0.4);
+      margin: 0 auto 16px;
+    }
+
+    .modal-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      text-align: center;
+      color: var(--solar-gold);
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(232,244,255,0.4);
+      letter-spacing: 0.12em;
+      margin-bottom: 28px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(0,200,255,0.75);
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,200,255,0.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 13px;
+      color: var(--star-white);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input::placeholder { color: rgba(232,244,255,0.2); }
+    .field input:focus {
+      border-color: rgba(0,200,255,0.5);
+      box-shadow: 0 0 10px rgba(0,200,255,0.15);
+    }
+
+    .modal-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #f5a623 0%, #e05500 100%);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 0 18px rgba(245,166,35,0.35);
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .modal-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 28px rgba(245,166,35,0.55);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: rgba(232,244,255,0.5);
+      font-size: 14px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.2s, color 0.2s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+    .divider-text { font-size: 11px; color: rgba(232,244,255,0.3); letter-spacing: 0.1em; }
+
+    .social-btn {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: rgba(232,244,255,0.7);
+      font-family: 'Exo 2', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .social-btn:hover { background: rgba(255,255,255,0.08); }
+
+    .register-link {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(232,244,255,0.4);
+      margin-top: 16px;
+    }
+    .register-link a {
+      color: var(--plasma);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .register-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- Starfield canvas -->
+<canvas id="starfield"></canvas>
+
+<div class="shell">
+  <!-- Header Toolbar -->
+  <header>
+    <div class="sun-logo"></div>
+    <div>
+      <div class="site-title">TATA SURYA</div>
+      <div class="site-subtitle">Solar Explorer</div>
+    </div>
+
+    <button class="nav-btn" title="Kembali" onclick="goBack()">&#8592;</button>
+    <button class="nav-btn" title="Muat ulang" onclick="reload()">&#8635;</button>
+
+    <div class="url-bar">
+      <div class="url-bar-icon"></div>
+      <div class="url-bar-text"><span>https://</span>tata-surya.onhercules.app/</div>
+    </div>
+
+    <!-- TOMBOL MASUK -->
+    <button class="btn-masuk" onclick="openModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      MASUK
+    </button>
+  </header>
+
+  <!-- iFrame wrapper -->
+  <div class="frame-wrapper">
+    <div class="loading-overlay" id="loader">
+      <div class="orbit-loader">
+        <div class="center-star"></div>
+        <div class="orbit-ring ring1"></div>
+        <div class="orbit-ring ring2"></div>
+      </div>
+      <div class="loading-text">MEMUAT ANTARIKSA…</div>
+    </div>
+    <iframe
+      id="mainFrame"
+      src="https://tata-surya.onhercules.app/"
+      title="Tata Surya"
+      onload="frameLoaded()"
+    ></iframe>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-bg" id="loginModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-logo"></div>
+    <div class="modal-title">MASUK</div>
+    <div class="modal-sub">TATA SURYA EXPLORER</div>
+
+    <div class="field">
+      <label>Email / Username</label>
+      <input type="text" placeholder="antariksawan@galaksi.id" />
+    </div>
+    <div class="field">
+      <label>Kata Sandi</label>
+      <input type="password" placeholder="••••••••" />
+    </div>
+
+    <button class="modal-submit">JELAJAHI SEKARANG →</button>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">ATAU</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <button class="social-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Lanjutkan dengan Google
+    </button>
+
+    <div class="register-link">
+      Belum punya akun? <a href="#">Daftar gratis</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Starfield ──
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initStars();
+  }
+
+  function initStars() {
+    stars = Array.from({ length: 200 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      speed: Math.random() * 0.4 + 0.1,
+    }));
+  }
+
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.a += s.speed * 0.01;
+      const alpha = (Math.sin(s.a) + 1) / 2 * 0.8 + 0.1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(232,244,255,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  drawStars();
+
+  // ── Frame helpers ──
+  function frameLoaded() {
+    const loader = document.getElementById('loader');
+    loader.classList.add('hidden');
+  }
+
+  function goBack() {
+    const f = document.getElementById('mainFrame');
+    try { f.contentWindow.history.back(); } catch(e) {}
+  }
+
+  function reload() {
+    const f = document.getElementById('mainFrame');
+    const loader = document.getElementById('loader');
+    loader.classList.remove('hidden');
+    f.src = f.src;
+  }
+
+  // ── Modal ──
+  function openModal() {
+    document.getElementById('loginModal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('loginModal').classList.remove('open');
+  }
+  document.getElementById('loginModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+                                  </html>
+
